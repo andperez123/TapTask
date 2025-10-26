@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', 'SF Pro Rounded', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+}
+
+@layer components {
+  /* Primary Button - Electric Purple Gradient */
+  .btn-primary {
+    @apply bg-gradient-purple text-white font-semibold px-6 py-3 rounded-lg;
+    @apply shadow-glow hover:shadow-glow-lg;
+    @apply transition-all duration-150 ease-out;
+    @apply hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .btn-primary:hover {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  /* Secondary Button - Purple Outline */
+  .btn-secondary {
+    @apply bg-transparent text-primary border-2 border-primary font-semibold px-6 py-3 rounded-lg;
+    @apply hover:bg-primary/10 hover:shadow-glow;
+    @apply transition-all duration-150 ease-out;
+  }
+
+  /* Card - Dark with Glow Hover */
+  .card-electric {
+    @apply bg-card rounded-lg p-6 shadow-card;
+    @apply transition-all duration-200 ease-out;
+    @apply hover:shadow-card-hover hover:-translate-y-1;
+  }
+
+  /* Badge/Chip */
+  .badge-purple {
+    @apply inline-flex items-center px-3 py-1 rounded-full;
+    @apply bg-primary/20 text-primary border border-primary/40;
+    @apply text-sm font-medium;
+  }
+
+  /* Glow Text */
+  .text-glow {
+    text-shadow: 0 0 20px rgba(160, 32, 255, 0.8);
+  }
+
+  /* Input Field */
+  .input-electric {
+    @apply bg-card border-2 border-card-light text-foreground;
+    @apply px-4 py-3 rounded-lg;
+    @apply focus:border-primary focus:ring-2 focus:ring-primary/20;
+    @apply transition-all duration-150;
+  }
+
+  /* Animated Checkmark */
+  .checkmark-success {
+    @apply text-accent-success;
+    animation: check-flip 0.3s ease-out;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1A1A1A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #A020FF;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #C632FF;
+}
+
+/* Selection */
+::selection {
+  background: rgba(160, 32, 255, 0.3);
+  color: white;
+}

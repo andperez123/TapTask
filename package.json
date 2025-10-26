@@ -1,0 +1,28 @@
+{
+  "name": "taptask",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The marketplace for iPhone automations",
+  "scripts": {
+    "dev": "pnpm -r dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test"
+  },
+  "keywords": [
+    "ios",
+    "shortcuts",
+    "marketplace",
+    "automation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.29.5",
+    "mysql2": "^3.15.3"
+  }
+}
