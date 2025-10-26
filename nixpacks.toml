@@ -1,0 +1,9 @@
+[phases.setup]
+nixPkgs = ["nodejs_22", "pnpm"]
+
+[phases.install]
+cmds = ["cd server && pnpm install --frozen-lockfile"]
+
+[start]
+cmd = "cd server && pnpm exec tsx src/_core/index.ts"
+
