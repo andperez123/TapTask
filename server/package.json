@@ -12,6 +12,7 @@
   "dependencies": {
     "@trpc/server": "^11.0.0-next-beta.289",
     "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
     "drizzle-orm": "^0.29.3",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
