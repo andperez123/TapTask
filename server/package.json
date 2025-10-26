@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/_core/index.ts",
-    "build": "tsc",
-    "start": "node dist/_core/index.js",
+    "build": "echo 'No build needed for tsx'",
+    "start": "tsx src/_core/index.ts",
     "lint": "eslint src --ext .ts --fix"
   },
   "dependencies": {
