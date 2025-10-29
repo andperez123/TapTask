@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/mysql2';
 import mysql from 'mysql2';
-import * as schema from '../../drizzle/schema';
+import * as schema from './schema';
 
 // Create connection pool with proper config
 const connection = mysql.createPool({

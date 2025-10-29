@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/_core/index.ts",
+    "dev": "tsx src/_core/index.ts",
+    "dev:watch": "tsx watch src/_core/index.ts",
     "build": "echo 'No build needed for tsx'",
     "start": "tsx src/_core/index.ts",
     "lint": "eslint src --ext .ts --fix"

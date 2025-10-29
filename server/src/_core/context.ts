@@ -2,7 +2,7 @@ import { inferAsyncReturnType } from '@trpc/server';
 import { CreateExpressContextOptions } from '@trpc/server/adapters/express';
 import jwt from 'jsonwebtoken';
 import { db } from '../db';
-import { users } from '../../../drizzle/schema';
+import { users } from '../schema';
 import { eq } from 'drizzle-orm';
 
 interface JWTPayload {

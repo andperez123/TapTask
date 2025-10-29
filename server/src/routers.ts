@@ -1,7 +1,7 @@
 import { router, publicProcedure, protectedProcedure, adminProcedure } from './_core/trpc';
 import { z } from 'zod';
 import { db } from './db';
-import { shortcuts, users, purchases } from '../../drizzle/schema';
+import { shortcuts, users, purchases } from './schema';
 import { eq, and, like, or } from 'drizzle-orm';
 import * as stripeHelper from './stripe';
 
