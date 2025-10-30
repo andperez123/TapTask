@@ -4,14 +4,11 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 export default {
-  schema: '../drizzle/schema.ts',
-  out: '../drizzle/migrations',
-  driver: 'mysql2',
+  schema: './src/schema.ts',
+  out: './migrations',
+  dialect: 'mysql',
   dbCredentials: {
-    host: 'localhost',
-    port: 3306,
-    user: 'root',
-    database: 'taptask',
+    url: process.env.DATABASE_URL || 'mysql://root:@localhost:3306/taptask',
   },
 } satisfies Config;
 
