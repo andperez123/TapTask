@@ -1,5 +1,6 @@
 import { Route, Switch, Link, useLocation } from 'wouter';
 import { Suspense, lazy } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 
 // Lazy-loaded components
 const Home = lazy(() => import('./pages/Home'));
@@ -106,6 +107,8 @@ function App() {
           </Route>
         </Switch>
       </Suspense>
+      
+      <Analytics />
     </div>
   );
 }
