@@ -43,12 +43,11 @@ export default function Home() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button 
-              onClick={() => window.scrollTo({ top: document.getElementById('shortcuts-section')?.offsetTop || 600, behavior: 'smooth' })}
-              className="btn-primary text-lg px-8 py-4"
-            >
-              Browse Shortcuts
-            </button>
+            <Link href="/browse">
+              <button className="btn-primary text-lg px-8 py-4">
+                Browse Shortcuts
+              </button>
+            </Link>
             <Link href="/creator">
               <button className="btn-secondary text-lg px-8 py-4">
                 Become a Creator
@@ -81,7 +80,7 @@ export default function Home() {
             <h2 className="text-4xl font-bold">
               Featured <span className="text-primary">Shortcuts</span>
             </h2>
-            <Link href="/">
+            <Link href="/browse">
               <button className="btn-secondary">View All</button>
             </Link>
           </div>
@@ -146,14 +145,13 @@ export default function Home() {
           </h2>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {['Productivity', 'Entertainment', 'Utilities', 'Health', 'Social', 'Education'].map((category) => (
-              <button
-                key={category}
-                className="card-electric text-center py-8 hover:bg-primary/10"
-              >
-                <div className="text-3xl mb-2">⚡</div>
-                <div className="font-semibold">{category}</div>
-              </button>
+            {['Productivity', 'Entertainment', 'Utilities', 'Health & Fitness', 'Social Media', 'Finance'].map((category) => (
+              <Link key={category} href={`/browse?category=${encodeURIComponent(category)}`}>
+                <button className="card-electric text-center py-8 hover:bg-primary/10 w-full">
+                  <div className="text-3xl mb-2">⚡</div>
+                  <div className="font-semibold">{category}</div>
+                </button>
+              </Link>
             ))}
           </div>
         </div>

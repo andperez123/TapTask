@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/react';
 
 // Lazy-loaded components
 const Home = lazy(() => import('./pages/Home'));
+const Browse = lazy(() => import('./pages/Browse'));
 const ShortcutDetail = lazy(() => import('./pages/ShortcutDetail'));
 const CreatorDashboard = lazy(() => import('./pages/CreatorDashboard'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
@@ -35,6 +36,13 @@ function Navigation() {
             <Link href="/">
               <a className={`font-medium transition-colors ${
                 isActive('/') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+              }`}>
+                Home
+              </a>
+            </Link>
+            <Link href="/browse">
+              <a className={`font-medium transition-colors ${
+                isActive('/browse') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
               }`}>
                 Browse
               </a>
@@ -93,6 +101,7 @@ function App() {
       <Suspense fallback={<LoadingFallback />}>
         <Switch>
           <Route path="/" component={Home} />
+          <Route path="/browse" component={Browse} />
           <Route path="/shortcut/:slug" component={ShortcutDetail} />
           <Route path="/creator" component={CreatorDashboard} />
           <Route path="/admin" component={AdminDashboard} />
