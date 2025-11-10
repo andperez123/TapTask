@@ -83,6 +83,52 @@ export const appRouter = router({
       }),
   }),
 
+  creator: router({
+    // Submit a new shortcut (goes to pending status)
+    submitShortcut: publicProcedure
+      .input(z.object({
+        title: z.string(),
+        description: z.string(),
+        category: z.string(),
+        tags: z.string().optional(),
+        price: z.number().default(0),
+        iCloudLink: z.string().url(),
+        creatorName: z.string(),
+        creatorEmail: z.string().email().optional(),
+        previewImage: z.string().optional(),
+        requiredIOSVersion: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        // Generate slug from title
+        const slug = input.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+        
+        const result = await db.insert(shortcuts).values({
+          ...input,
+          slug,
+          creatorId: 0, // Anonymous for now
+          status: 'pending',
+        });
+        return { 
+          success: true, 
+          id: result[0].insertId,
+          message: 'Shortcut submitted for review!' 
+        };
+      }),
+    
+    // Get creator's submitted shortcuts
+    myShortcuts: publicProcedure
+      .input(z.object({ creatorName: z.string() }))
+      .query(async ({ input }) => {
+        return await db
+          .select()
+          .from(shortcuts)
+          .where(eq(shortcuts.creatorName, input.creatorName));
+      }),
+  }),
+
   admin: router({
     pendingShortcuts: adminProcedure
       .query(async () => {
