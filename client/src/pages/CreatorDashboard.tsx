@@ -36,7 +36,23 @@ export default function CreatorDashboard() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    submitShortcut.mutate(formData);
+    
+    // Filter out empty optional fields
+    const submitData: any = {
+      title: formData.title,
+      description: formData.description,
+      category: formData.category,
+      price: formData.price,
+      iCloudLink: formData.iCloudLink,
+      creatorName: formData.creatorName,
+    };
+    
+    // Only include optional fields if they have values
+    if (formData.creatorEmail) submitData.creatorEmail = formData.creatorEmail;
+    if (formData.previewImage) submitData.previewImage = formData.previewImage;
+    if (formData.requiredIOSVersion) submitData.requiredIOSVersion = formData.requiredIOSVersion;
+    
+    submitShortcut.mutate(submitData);
   };
 
   const categories = [
