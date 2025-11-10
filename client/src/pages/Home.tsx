@@ -2,10 +2,20 @@ import { trpc } from '../lib/trpc';
 import { Link } from 'wouter';
 
 export default function Home() {
-  const { data: shortcuts, isLoading } = trpc.shortcuts.list.useQuery({
+  // Try to get featured shortcuts first, fall back to all shortcuts
+  const { data: featuredShortcuts, isLoading: featuredLoading } = trpc.shortcuts.list.useQuery({
     featured: true,
     limit: 6,
   });
+  
+  const { data: allShortcuts, isLoading: allLoading } = trpc.shortcuts.list.useQuery({
+    limit: 6,
+  }, {
+    enabled: !featuredLoading && (!featuredShortcuts || featuredShortcuts.length === 0),
+  });
+  
+  const shortcuts = featuredShortcuts && featuredShortcuts.length > 0 ? featuredShortcuts : allShortcuts;
+  const isLoading = featuredLoading || allLoading;
 
   return (
     <div className="min-h-screen bg-background">

@@ -14,19 +14,30 @@ export const appRouter = router({
         limit: z.number().optional(),
       }).optional())
       .query(async ({ input }) => {
-        let query = db.select().from(shortcuts);
-        
-        if (input?.category) {
-          query = query.where(eq(shortcuts.category, input.category));
+        try {
+          // Build conditions array
+          const conditions = [eq(shortcuts.status, 'approved')];
+          
+          if (input?.category) {
+            conditions.push(eq(shortcuts.category, input.category));
+          }
+          if (input?.featured) {
+            conditions.push(eq(shortcuts.featured, 1));
+          }
+          
+          let query = db.select().from(shortcuts).where(and(...conditions));
+          
+          if (input?.limit) {
+            query = query.limit(input.limit);
+          }
+          
+          const results = await query;
+          return results;
+        } catch (error) {
+          console.error('Error fetching shortcuts:', error);
+          // Return empty array instead of crashing
+          return [];
         }
-        if (input?.featured) {
-          query = query.where(eq(shortcuts.featured, 1));
-        }
-        if (input?.limit) {
-          query = query.limit(input.limit);
-        }
-        
-        return await query;
       }),
 
     getBySlug: publicProcedure
