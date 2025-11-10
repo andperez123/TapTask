@@ -43,12 +43,17 @@ export default function Home() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button className="btn-primary text-lg px-8 py-4">
+            <button 
+              onClick={() => window.scrollTo({ top: document.getElementById('shortcuts-section')?.offsetTop || 600, behavior: 'smooth' })}
+              className="btn-primary text-lg px-8 py-4"
+            >
               Browse Shortcuts
             </button>
-            <button className="btn-secondary text-lg px-8 py-4">
-              Become a Creator
-            </button>
+            <Link href="/creator">
+              <button className="btn-secondary text-lg px-8 py-4">
+                Become a Creator
+              </button>
+            </Link>
           </div>
 
           {/* Stats */}
@@ -70,13 +75,15 @@ export default function Home() {
       </section>
 
       {/* Featured Shortcuts */}
-      <section className="py-20 px-4">
+      <section id="shortcuts-section" className="py-20 px-4">
         <div className="container mx-auto">
           <div className="flex items-center justify-between mb-12">
             <h2 className="text-4xl font-bold">
               Featured <span className="text-primary">Shortcuts</span>
             </h2>
-            <button className="btn-secondary">View All</button>
+            <Link href="/">
+              <button className="btn-secondary">View All</button>
+            </Link>
           </div>
 
           {isLoading ? (
@@ -162,9 +169,11 @@ export default function Home() {
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             Join thousands of users who've transformed their iPhone workflow
           </p>
-          <button className="btn-primary text-lg px-12 py-5">
-            Get Started Now
-          </button>
+          <Link href="/creator">
+            <button className="btn-primary text-lg px-12 py-5">
+              Get Started Now
+            </button>
+          </Link>
         </div>
       </section>
 

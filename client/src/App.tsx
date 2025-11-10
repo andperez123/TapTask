@@ -57,12 +57,16 @@ function Navigation() {
 
           {/* CTA */}
           <div className="flex items-center gap-4">
-            <button className="btn-secondary text-sm py-2 px-4 hidden sm:block">
-              Sign In
-            </button>
-            <button className="btn-primary text-sm py-2 px-4">
-              Get Started
-            </button>
+            <Link href="/library">
+              <button className="btn-secondary text-sm py-2 px-4 hidden sm:block">
+                Sign In
+              </button>
+            </Link>
+            <Link href="/creator">
+              <button className="btn-primary text-sm py-2 px-4">
+                Get Started
+              </button>
+            </Link>
           </div>
         </div>
       </div>
