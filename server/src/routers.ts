@@ -4,6 +4,9 @@ import { db } from './db';
 import { shortcuts, users, purchases } from './schema';
 import { eq, and, like, or, desc } from 'drizzle-orm';
 import * as stripeHelper from './stripe';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
 export const appRouter = router({
   shortcuts: router({
@@ -56,6 +59,113 @@ export const appRouter = router({
     me: protectedProcedure
       .query(async ({ ctx }) => {
         return ctx.user;
+      }),
+
+    login: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        password: z.string().min(6),
+      }))
+      .mutation(async ({ input }) => {
+        // Find user by email
+        const user = await db
+          .select()
+          .from(users)
+          .where(eq(users.email, input.email))
+          .limit(1);
+
+        if (!user[0] || !user[0].password) {
+          throw new Error('Invalid email or password');
+        }
+
+        // Verify password
+        const isValid = await bcrypt.compare(input.password, user[0].password);
+        if (!isValid) {
+          throw new Error('Invalid email or password');
+        }
+
+        // Check if user is admin
+        if (user[0].role !== 'admin') {
+          throw new Error('Access denied. Admin account required.');
+        }
+
+        // Update last signed in
+        await db
+          .update(users)
+          .set({ lastSignedIn: new Date() })
+          .where(eq(users.id, user[0].id));
+
+        // Generate JWT token
+        const token = jwt.sign(
+          { userId: user[0].id, openId: user[0].openId },
+          process.env.JWT_SECRET!,
+          { expiresIn: '7d' }
+        );
+
+        return {
+          token,
+          user: {
+            id: user[0].id,
+            email: user[0].email,
+            name: user[0].name,
+            role: user[0].role,
+          },
+        };
+      }),
+
+    register: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        password: z.string().min(6),
+        name: z.string().min(1),
+        role: z.enum(['user', 'creator', 'admin']).optional().default('user'),
+      }))
+      .mutation(async ({ input }) => {
+        // Check if user already exists
+        const existingUser = await db
+          .select()
+          .from(users)
+          .where(eq(users.email, input.email))
+          .limit(1);
+
+        if (existingUser[0]) {
+          throw new Error('User with this email already exists');
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(input.password, 10);
+
+        // Generate unique openId
+        const openId = crypto.randomBytes(32).toString('hex');
+
+        // Create user
+        const result = await db.insert(users).values({
+          openId,
+          email: input.email,
+          password: hashedPassword,
+          name: input.name,
+          role: input.role,
+          loginMethod: 'email',
+        });
+
+        const userId = result[0].insertId;
+
+        // Generate JWT token
+        const token = jwt.sign(
+          { userId, openId },
+          process.env.JWT_SECRET!,
+          { expiresIn: '7d' }
+        );
+
+        return {
+          token,
+          user: {
+            id: userId,
+            email: input.email,
+            name: input.name,
+            role: input.role,
+          },
+        };
       }),
   }),
 
@@ -151,10 +261,17 @@ export const appRouter = router({
 
     allShortcuts: adminProcedure
       .query(async () => {
-        return await db
-          .select()
-          .from(shortcuts)
-          .orderBy(desc(shortcuts.createdAt));
+        try {
+          const result = await db
+            .select()
+            .from(shortcuts)
+            .orderBy(desc(shortcuts.createdAt));
+          console.log(`[Admin] Fetched ${result.length} shortcuts`);
+          return result;
+        } catch (error) {
+          console.error('[Admin] Error fetching shortcuts:', error);
+          throw error;
+        }
       }),
 
     getShortcutById: adminProcedure

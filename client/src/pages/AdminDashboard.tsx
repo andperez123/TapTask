@@ -1,18 +1,56 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { trpc } from '../lib/trpc';
 import * as Dialog from '@radix-ui/react-dialog';
-import { X, Edit, Save } from 'lucide-react';
+import { X, Edit, Save, LogOut } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [editingShortcut, setEditingShortcut] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [currentUser, setCurrentUser] = useState<any>(null);
   
-  const { data: shortcuts, isLoading, refetch } = trpc.admin.allShortcuts.useQuery();
+  // Check if user is logged in
+  const { data: user, isLoading: userLoading } = trpc.auth.me.useQuery(undefined, {
+    retry: false,
+    onSuccess: (data) => {
+      if (data && data.role === 'admin') {
+        setIsLoggedIn(true);
+        setCurrentUser(data);
+      }
+    },
+    onError: () => {
+      setIsLoggedIn(false);
+    },
+  });
+
+  const { data: shortcuts, isLoading, error, refetch } = trpc.admin.allShortcuts.useQuery(
+    undefined,
+    { enabled: isLoggedIn, retry: false }
+  );
   
   const { data: shortcutToEdit } = trpc.admin.getShortcutById.useQuery(
     { id: editingShortcut! },
-    { enabled: editingShortcut !== null }
+    { enabled: editingShortcut !== null && isLoggedIn }
   );
+
+  const loginMutation = trpc.auth.login.useMutation({
+    onSuccess: (data) => {
+      localStorage.setItem('token', data.token);
+      setIsLoggedIn(true);
+      setCurrentUser(data.user);
+      setLoginError('');
+      setEmail('');
+      setPassword('');
+      // Refetch shortcuts after login
+      refetch();
+    },
+    onError: (error) => {
+      setLoginError(error.message || 'Invalid email or password');
+    },
+  });
 
   const updateMutation = trpc.admin.updateShortcut.useMutation({
     onSuccess: () => {
@@ -21,6 +59,19 @@ export default function AdminDashboard() {
       setEditingShortcut(null);
     },
   });
+
+  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoginError('');
+    loginMutation.mutate({ email, password });
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    setCurrentUser(null);
+    window.location.reload();
+  };
 
   const handleEdit = (id: number) => {
     setEditingShortcut(id);
@@ -68,6 +119,75 @@ export default function AdminDashboard() {
     }
   };
 
+  // Show login form if not logged in
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center py-8 px-4">
+        <div className="card-electric max-w-md w-full p-8">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold mb-2">Admin Login</h1>
+            <p className="text-muted-foreground">Sign in to manage shortcuts</p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium mb-2">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input-electric w-full"
+                placeholder="admin@taptask.com"
+                required
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input-electric w-full"
+                placeholder="••••••••"
+                required
+                minLength={6}
+              />
+            </div>
+
+            {loginError && (
+              <div className="bg-red-500/20 border border-red-500/40 text-red-400 px-4 py-3 rounded-lg text-sm">
+                {loginError}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loginMutation.isPending}
+              className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loginMutation.isPending ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Logging in...
+                </span>
+              ) : (
+                'Sign In'
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 pt-6 border-t border-card-light">
+            <p className="text-sm text-muted-foreground text-center">
+              Need admin access? Contact the system administrator.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -79,12 +199,49 @@ export default function AdminDashboard() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="text-red-400 text-4xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold mb-2">Error</h2>
+          <p className="text-muted-foreground mb-4">
+            {error.message || 'Failed to load shortcuts.'}
+          </p>
+          <button
+            onClick={() => refetch()}
+            className="btn-primary mt-4"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="container mx-auto max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage shortcuts and edit their details</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
+            <p className="text-muted-foreground">Manage shortcuts and edit their details</p>
+          </div>
+          <div className="flex items-center gap-4">
+            {currentUser && (
+              <div className="text-right">
+                <p className="text-sm font-medium">{currentUser.name || currentUser.email}</p>
+                <p className="text-xs text-muted-foreground">{currentUser.role}</p>
+              </div>
+            )}
+            <button
+              onClick={handleLogout}
+              className="btn-secondary px-4 py-2 flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
+          </div>
         </div>
 
         <div className="card-electric">
@@ -102,40 +259,48 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {shortcuts?.map((shortcut) => (
-                  <tr key={shortcut.id} className="border-b border-card-light hover:bg-card-light/50 transition-colors">
-                    <td className="p-4">{shortcut.id}</td>
-                    <td className="p-4">
-                      <div className="font-medium">{shortcut.title}</div>
-                      <div className="text-sm text-muted-foreground">{shortcut.slug}</div>
-                    </td>
-                    <td className="p-4">{shortcut.category}</td>
-                    <td className="p-4">
-                      ${(shortcut.price / 100).toFixed(2)}
-                    </td>
-                    <td className="p-4">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(shortcut.status)}`}>
-                        {shortcut.status}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      {shortcut.featured === 1 ? (
-                        <span className="badge-purple">Yes</span>
-                      ) : (
-                        <span className="text-muted-foreground">No</span>
-                      )}
-                    </td>
-                    <td className="p-4">
-                      <button
-                        onClick={() => handleEdit(shortcut.id)}
-                        className="btn-secondary px-4 py-2 text-sm flex items-center gap-2"
-                      >
-                        <Edit className="w-4 h-4" />
-                        Edit
-                      </button>
+                {shortcuts && shortcuts.length > 0 ? (
+                  shortcuts.map((shortcut) => (
+                    <tr key={shortcut.id} className="border-b border-card-light hover:bg-card-light/50 transition-colors">
+                      <td className="p-4">{shortcut.id}</td>
+                      <td className="p-4">
+                        <div className="font-medium">{shortcut.title}</div>
+                        <div className="text-sm text-muted-foreground">{shortcut.slug}</div>
+                      </td>
+                      <td className="p-4">{shortcut.category}</td>
+                      <td className="p-4">
+                        ${(shortcut.price / 100).toFixed(2)}
+                      </td>
+                      <td className="p-4">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(shortcut.status)}`}>
+                          {shortcut.status}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        {shortcut.featured === 1 ? (
+                          <span className="badge-purple">Yes</span>
+                        ) : (
+                          <span className="text-muted-foreground">No</span>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        <button
+                          onClick={() => handleEdit(shortcut.id)}
+                          className="btn-secondary px-4 py-2 text-sm flex items-center gap-2"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Edit
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                      No shortcuts found. The database might be empty.
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

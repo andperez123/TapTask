@@ -13,9 +13,10 @@ import { sql } from 'drizzle-orm';
 
 export const users = mysqlTable('users', {
   id: int('id').autoincrement().primaryKey(),
-  openId: varchar('openId', { length: 64 }).notNull().unique(),
+  openId: varchar('openId', { length: 128 }).notNull().unique(), // Increased for longer hex strings
   name: text('name'),
   email: varchar('email', { length: 320 }),
+  password: varchar('password', { length: 255 }), // Hashed password for email/password auth
   loginMethod: varchar('loginMethod', { length: 64 }),
   role: mysqlEnum('role', ['user', 'creator', 'admin']).default('user'),
   stripeCustomerId: varchar('stripeCustomerId', { length: 255 }),
@@ -23,7 +24,9 @@ export const users = mysqlTable('users', {
   createdAt: timestamp('createdAt').default(sql`CURRENT_TIMESTAMP`),
   updatedAt: timestamp('updatedAt').default(sql`CURRENT_TIMESTAMP`).onUpdateNow(),
   lastSignedIn: timestamp('lastSignedIn').default(sql`CURRENT_TIMESTAMP`),
-});
+}, (table) => ({
+  emailIdx: index('idx_users_email').on(table.email),
+}));
 
 export const shortcuts = mysqlTable('shortcuts', {
   id: int('id').autoincrement().primaryKey(),

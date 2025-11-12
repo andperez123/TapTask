@@ -15,6 +15,7 @@ const allowedOrigins = [
   'https://taptask.cc',
   'https://www.taptask.cc',
   process.env.APP_URL,
+  process.env.CORS_ORIGIN,
 ].filter(Boolean);
 
 app.use(cors({
