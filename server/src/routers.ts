@@ -2,7 +2,7 @@ import { router, publicProcedure, protectedProcedure, adminProcedure } from './_
 import { z } from 'zod';
 import { db } from './db';
 import { shortcuts, users, purchases } from './schema';
-import { eq, and, like, or } from 'drizzle-orm';
+import { eq, and, like, or, desc } from 'drizzle-orm';
 import * as stripeHelper from './stripe';
 
 export const appRouter = router({
@@ -149,6 +149,25 @@ export const appRouter = router({
           .where(eq(shortcuts.status, 'pending'));
       }),
 
+    allShortcuts: adminProcedure
+      .query(async () => {
+        return await db
+          .select()
+          .from(shortcuts)
+          .orderBy(desc(shortcuts.createdAt));
+      }),
+
+    getShortcutById: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const result = await db
+          .select()
+          .from(shortcuts)
+          .where(eq(shortcuts.id, input.id))
+          .limit(1);
+        return result[0];
+      }),
+
     approveShortcut: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
@@ -156,22 +175,39 @@ export const appRouter = router({
           .update(shortcuts)
           .set({ status: 'approved' })
           .where(eq(shortcuts.id, input.id));
+        return { success: true };
       }),
 
     updateShortcut: adminProcedure
       .input(z.object({ 
         id: z.number(),
-        purchaseLink: z.string().optional(),
-        iCloudLink: z.string().optional(),
+        title: z.string().optional(),
+        slug: z.string().optional(),
+        description: z.string().optional(),
+        category: z.string().optional(),
+        tags: z.string().optional(),
         price: z.number().optional(),
+        iCloudLink: z.string().optional(),
+        purchaseLink: z.string().optional(),
+        previewImage: z.string().optional(),
+        previewMedia: z.string().optional(),
+        creatorId: z.number().optional(),
+        creatorName: z.string().optional(),
+        creatorAvatar: z.string().optional(),
+        status: z.enum(['pending', 'approved', 'rejected']).optional(),
         featured: z.number().optional(),
         trending: z.number().optional(),
+        requiredIOSVersion: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...updateData } = input;
+        // Remove undefined values to avoid overwriting with null
+        const cleanUpdateData = Object.fromEntries(
+          Object.entries(updateData).filter(([_, v]) => v !== undefined)
+        );
         await db
           .update(shortcuts)
-          .set(updateData)
+          .set(cleanUpdateData)
           .where(eq(shortcuts.id, id));
         return { success: true };
       }),

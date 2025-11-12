@@ -102,3 +102,4 @@ INSERT INTO `shortcuts` (`title`, `slug`, `description`, `category`, `tags`, `pr
 
 
 
+
